@@ -24,6 +24,7 @@ import android.view.Choreographer
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
@@ -45,6 +46,8 @@ class BubbleService : Service() {
 
     companion object {
         var instance: BubbleService? = null
+        val SKINS = listOf("🧸", "🐰", "🐱", "🐼", "🦊", "🐶", "🐻", "🦄", "🐸", "🐥")
+        val COLORS = listOf("#FFD6E8", "#D6EEFF", "#DFF7DC", "#FFF2C2", "#EBDDFF", "#FFFFFF")
     }
 
     private lateinit var windowManager: WindowManager
@@ -53,7 +56,9 @@ class BubbleService : Service() {
     private val handler = Handler(Looper.getMainLooper())
 
     private var root: FrameLayout? = null
-    private var teddy: TextView? = null
+    private var teddy: FrameLayout? = null
+    private var emoji: TextView? = null
+    private var zzz: TextView? = null
     private var attached = false
     private var wantShown = false
 
@@ -61,8 +66,10 @@ class BubbleService : Service() {
     private val particles = mutableListOf<View>()
     private var jellyAnim: ValueAnimator? = null
     private var dockAnim: ValueAnimator? = null
+    private var zzzAnim: ValueAnimator? = null
 
     private var playMode = false
+    private var sleeping = false
     private var flying = false
     private var vx = 0f
     private var vy = 0f
@@ -71,14 +78,18 @@ class BubbleService : Service() {
     private var lastFrameNanos = 0L
     private var lastBoingMs = 0L
 
-    private val bubbleSize = 240
-    private val teddySize = 200
+    private var scale = 1f
+    private var bubbleSize = 240
+    private var teddySize = 200
     private val burstEmojis = listOf("❤️", "💖", "✨", "⭐", "🎀")
 
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        if (key == "mode") {
-            applyMode()
-            updateNotification()
+        when (key) {
+            "mode" -> {
+                applyMode()
+                updateNotification()
+            }
+            "skin", "color", "size" -> rebuildBubble()
         }
     }
 
@@ -108,6 +119,21 @@ class BubbleService : Service() {
 
     private val hideRunnable = Runnable {
         if (prefs.getInt("mode", 0) == 1) setShown(false)
+    }
+
+    private val sleepRunnable = Runnable {
+        if (attached && !playMode && !flying) fallAsleep() else scheduleSleep()
+    }
+
+    private val blinkRunnable = Runnable {
+        if (attached && !sleeping && !flying) {
+            emoji?.let { e ->
+                e.animate().scaleY(0.8f).scaleX(1.06f).setDuration(90).withEndAction {
+                    e.animate().scaleY(1f).scaleX(1f).setDuration(120).start()
+                }.start()
+            }
+        }
+        scheduleBlink()
     }
 
     private val frameCallback = object : Choreographer.FrameCallback {
@@ -184,21 +210,52 @@ class BubbleService : Service() {
         return Pair(dm.widthPixels, dm.heightPixels)
     }
 
-    private fun buildBubble() {
-        val t = TextView(this)
-        t.text = "🧸"
-        t.textSize = 38f
-        t.gravity = Gravity.CENTER
-        t.includeFontPadding = false
+    private fun buildBubble(startX: Int = 8, startY: Int = 400) {
+        val sc = prefs.getInt("size", 100) / 100f
+        scale = sc
+        bubbleSize = (240 * sc).toInt()
+        teddySize = (200 * sc).toInt()
+
+        val colorIdx = prefs.getInt("color", 0).coerceIn(0, COLORS.size - 1)
+        val skin = prefs.getString("skin", "🧸") ?: "🧸"
+
+        val t = FrameLayout(this)
         val circle = GradientDrawable()
         circle.shape = GradientDrawable.OVAL
-        circle.setColor(Color.parseColor("#FFD6E8"))
+        circle.setColor(Color.parseColor(COLORS[colorIdx]))
         circle.setStroke(6, Color.WHITE)
         t.background = circle
+
+        val e = TextView(this)
+        e.text = skin
+        e.textSize = 38f * sc
+        e.gravity = Gravity.CENTER
+        e.includeFontPadding = false
+        t.addView(
+            e,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
         teddy = t
+        emoji = e
 
         val r = FrameLayout(this)
         r.addView(t, FrameLayout.LayoutParams(teddySize, teddySize, Gravity.CENTER))
+
+        val z = TextView(this)
+        z.text = "💤"
+        z.textSize = 16f * sc
+        z.visibility = View.GONE
+        val zlp = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            Gravity.TOP or Gravity.END
+        )
+        zlp.topMargin = (34 * sc).toInt()
+        zlp.rightMargin = (8 * sc).toInt()
+        r.addView(z, zlp)
+        zzz = z
         root = r
 
         startIdleAnimation(t)
@@ -212,10 +269,74 @@ class BubbleService : Service() {
             PixelFormat.TRANSLUCENT
         )
         params.gravity = Gravity.TOP or Gravity.START
-        params.x = 8
-        params.y = 400
+        params.x = startX
+        params.y = startY
 
         setupTouch(r, t)
+        scheduleBlink()
+        scheduleSleep()
+    }
+
+    private fun rebuildBubble() {
+        val x = params.x
+        val y = params.y
+        stopMotion()
+        jellyAnim?.cancel()
+        zzzAnim?.cancel()
+        sleeping = false
+        playMode = false
+        handler.removeCallbacks(sleepRunnable)
+        handler.removeCallbacks(blinkRunnable)
+        idleAnimators.forEach { it.cancel() }
+        idleAnimators.clear()
+        detach()
+        buildBubble(x, y)
+        applyMode()
+    }
+
+    // ---------- Moods ----------
+
+    private fun scheduleBlink() {
+        handler.removeCallbacks(blinkRunnable)
+        handler.postDelayed(blinkRunnable, Random.nextLong(2500, 6000))
+    }
+
+    private fun scheduleSleep() {
+        handler.removeCallbacks(sleepRunnable)
+        handler.postDelayed(sleepRunnable, 20000)
+    }
+
+    private fun fallAsleep() {
+        if (sleeping) return
+        sleeping = true
+        idleAnimators.forEach { it.pause() }
+        emoji?.animate()?.alpha(0.75f)?.setDuration(400)?.start()
+        val z = zzz ?: return
+        z.visibility = View.VISIBLE
+        zzzAnim?.cancel()
+        val a = ValueAnimator.ofFloat(0f, 1f)
+        a.duration = 2000
+        a.repeatCount = ValueAnimator.INFINITE
+        a.addUpdateListener {
+            val p = it.animatedValue as Float
+            z.translationY = -28f * scale * p
+            z.alpha = if (p < 0.7f) 1f else (1f - p) / 0.3f
+            z.scaleX = 0.7f + 0.5f * p
+            z.scaleY = 0.7f + 0.5f * p
+        }
+        zzzAnim = a
+        a.start()
+    }
+
+    private fun wakeUp() {
+        scheduleSleep()
+        if (!sleeping) return
+        sleeping = false
+        zzzAnim?.cancel()
+        zzz?.visibility = View.GONE
+        idleAnimators.forEach { it.resume() }
+        emoji?.animate()?.alpha(1f)?.setDuration(200)?.start()
+        burst(params.x + bubbleSize / 2, params.y + bubbleSize / 2, 4)
     }
 
     // ---------- Show / hide ----------
@@ -287,7 +408,7 @@ class BubbleService : Service() {
 
     // ---------- Touch ----------
 
-    private fun setupTouch(r: FrameLayout, t: TextView) {
+    private fun setupTouch(r: FrameLayout, t: View) {
         var startX = 0
         var startY = 0
         var touchX = 0f
@@ -326,6 +447,7 @@ class BubbleService : Service() {
                     ivy = 0f
                     r.animate().cancel()
                     r.alpha = 1f
+                    wakeUp()
                     SoundFx.press(soundOn())
                     t.animate().scaleX(0.85f).scaleY(0.85f).setDuration(100).start()
                     handler.postDelayed(longPress, 700)
@@ -686,6 +808,7 @@ class BubbleService : Service() {
         handler.removeCallbacksAndMessages(null)
         stopMotion()
         jellyAnim?.cancel()
+        zzzAnim?.cancel()
         idleAnimators.forEach { it.cancel() }
         idleAnimators.clear()
         for (view in particles.toList()) {

@@ -102,7 +102,7 @@ class BubbleService : Service() {
                 else -> false
             }
         }
-S
+
         windowManager.addView(view, params)
         bubble = view
     }

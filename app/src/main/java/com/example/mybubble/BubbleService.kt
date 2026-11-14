@@ -38,7 +38,10 @@ class BubbleService : Service() {
     private val teddySize = 200
     private val burstEmojis = listOf("❤️", "💖", "✨", "⭐", "🎀")
 
-    override fun onBind(intent: Intent?): IBinder? = null
+       override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun soundOn() =
+        getSharedPreferences("mybubble_prefs", MODE_PRIVATE).getBoolean("sound", true)
 
     override fun onCreate() {
         super.onCreate()
@@ -99,7 +102,9 @@ class BubbleService : Service() {
                     startY = params.y
                     touchX = event.rawX
                     touchY = event.rawY
+                    SoundFx.press(soundOn())
                     teddy.animate().scaleX(0.85f).scaleY(0.85f).setDuration(100).start()
+                     
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
@@ -113,6 +118,7 @@ class BubbleService : Service() {
                         .setInterpolator(OvershootInterpolator(3f)).start()
                     val moved = Math.abs(event.rawX - touchX) + Math.abs(event.rawY - touchY)
                     if (moved < 15) {
+                     SoundFx.pop(soundOn())
                         burst(params.x + bubbleSize / 2, params.y + bubbleSize / 2)
                         val phone = getSharedPreferences("mybubble_prefs", MODE_PRIVATE).getString("phone", "") ?: ""
                         val service = PhoneAccessibilityService.instance

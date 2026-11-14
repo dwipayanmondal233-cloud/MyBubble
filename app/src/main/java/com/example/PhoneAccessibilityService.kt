@@ -1,6 +1,8 @@
 package com.example.mybubble
 
 import android.accessibilityservice.AccessibilityService
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
 import android.view.accessibility.AccessibilityEvent
@@ -42,7 +44,12 @@ class PhoneAccessibilityService : AccessibilityService() {
 
         val args = Bundle()
         args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, newText)
-        val ok = node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
+                var ok = node.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
+        if (!ok) {
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("phone", text))
+            ok = node.performAction(AccessibilityNodeInfo.ACTION_PASTE)
+        }
 
         val sel = Bundle()
         val pos = low + text.length

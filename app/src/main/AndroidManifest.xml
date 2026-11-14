@@ -8,8 +8,11 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
-    <application
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+      <application
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
         android:label="@string/app_name"
 
         android:theme="@android:style/Theme.Material.Light.DarkActionBar">

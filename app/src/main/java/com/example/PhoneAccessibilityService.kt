@@ -23,7 +23,20 @@ class PhoneAccessibilityService : AccessibilityService() {
         return super.onUnbind(intent)
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
+        override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        val type = event?.eventType ?: return
+        if (type == AccessibilityEvent.TYPE_VIEW_FOCUSED ||
+            type == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+        ) {
+            BubbleService.instance?.onInputFocusMaybeChanged()
+        }
+    }
+
+    fun editableFocusState(): Boolean? {
+        val root = rootInActiveWindow ?: return null
+        val node = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) ?: return false
+        return node.isEditable
+    }
 
     override fun onInterrupt() {}
 

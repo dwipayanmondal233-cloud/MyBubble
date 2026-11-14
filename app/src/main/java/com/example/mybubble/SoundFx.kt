@@ -59,6 +59,10 @@ object SoundFx {
         }.start()
     }
 
+    fun boing(enabled: Boolean) {
+        if (enabled) play(listOf(Triple(260.0, 520.0, 90), Triple(520.0, 180.0, 160)))
+    }
+
     fun press(enabled: Boolean) {
         if (enabled) play(listOf(Triple(520.0, 400.0, 70)))
     }

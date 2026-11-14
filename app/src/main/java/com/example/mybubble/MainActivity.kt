@@ -2,7 +2,10 @@ package com.example.mybubble
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -69,7 +72,13 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        actionBar?.hide()
+                actionBar?.hide()
+
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        }
 
         val prefs = getSharedPreferences("mybubble_prefs", MODE_PRIVATE)
 
@@ -181,6 +190,73 @@ class MainActivity : Activity() {
         switchLp.topMargin = dp(16)
         soundSwitch.layoutParams = switchLp
 
+        val modeCard = LinearLayout(this)
+        modeCard.orientation = LinearLayout.VERTICAL
+        modeCard.setPadding(dp(16), dp(16), dp(16), dp(16))
+        val modeBg = GradientDrawable()
+        modeBg.cornerRadius = dp(28).toFloat()
+        modeBg.setColor(Color.WHITE)
+        modeCard.background = modeBg
+        val modeLp = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        modeLp.topMargin = dp(8)
+        modeCard.layoutParams = modeLp
+
+        val modeTitle = TextView(this)
+        modeTitle.text = "👀 When should teddy show?"
+        modeTitle.textSize = 16f
+        modeTitle.typeface = Typeface.DEFAULT_BOLD
+        modeTitle.setTextColor(Color.parseColor("#7A4A63"))
+        modeCard.addView(modeTitle)
+
+        val modeNames = listOf("Always", "Only with a text box", "Hidden")
+        val modeButtons = mutableListOf<Button>()
+        fun paintModes() {
+            val current = prefs.getInt("mode", 0)
+            for ((i, b) in modeButtons.withIndex()) {
+                val bg = GradientDrawable()
+                bg.cornerRadius = dp(22).toFloat()
+                if (i == current) {
+                    bg.setColor(Color.parseColor("#FF7EB6"))
+                    b.setTextColor(Color.WHITE)
+                } else {
+                    bg.setColor(Color.parseColor("#FFF0F6"))
+                    b.setTextColor(Color.parseColor("#7A4A63"))
+                }
+                b.background = bg
+            }
+        }
+        for ((i, name) in modeNames.withIndex()) {
+            val b = Button(this)
+            b.text = name
+            b.isAllCaps = false
+            b.textSize = 15f
+            b.stateListAnimator = null
+            val lp = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(48)
+            )
+            lp.topMargin = dp(8)
+            b.layoutParams = lp
+            b.setOnClickListener {
+                val e = prefs.edit().putInt("mode", i)
+                if (i != 2) e.putInt("mode_before", i)
+                e.apply()
+                SoundFx.press(soundOn())
+                paintModes()
+            }
+            modeButtons.add(b)
+            modeCard.addView(b)
+        }
+        paintModes()
+
+        val tips = TextView(this)
+        tips.text = "🎮 Hold the teddy for 1 second to play. Fling it around!\n🙈 To hide it while recording, use the button in the notification."
+        tips.textSize = 13f
+        tips.setTextColor(Color.parseColor("#B07A90"))
+        tips.setPadding(0, dp(12), 0, 0)
+        modeCard.addView(tips)
+
         val startButton = cuteButton("🧸  Start teddy", "#7ED6A8") {
             if (!Settings.canDrawOverlays(this)) {
                 Toast.makeText(
@@ -212,6 +288,7 @@ class MainActivity : Activity() {
         layout.addView(subtitle)
         layout.addView(card)
         layout.addView(soundSwitch)
+        layout.addView(modeCard)
         layout.addView(startButton)
         layout.addView(stopButton)
         layout.addView(accButton)

@@ -87,7 +87,8 @@ class BubbleService : Service() {
                 MotionEvent.ACTION_UP -> {
                     val moved = Math.abs(event.rawX - touchX) + Math.abs(event.rawY - touchY)
                     if (moved < 15) {
-                        Toast.makeText(this, "Bubble tapped!", Toast.LENGTH_SHORT).show()
+                        val phone = getSharedPreferences("mybubble_prefs", MODE_PRIVATE).getString("phone", "") ?: ""
+                        Toast.makeText(this, if (phone.isEmpty()) "No number saved yet" else "Saved: $phone", Toast.LENGTH_SHORT).show()
                     }
                     true
                 }

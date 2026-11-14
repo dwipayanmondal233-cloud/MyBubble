@@ -5,7 +5,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.text.InputType
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -14,6 +16,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val prefs = getSharedPreferences("mybubble_prefs", MODE_PRIVATE)
+
         val layout = LinearLayout(this)
         layout.orientation = LinearLayout.VERTICAL
         layout.setPadding(48, 48, 48, 48)
@@ -21,6 +25,18 @@ class MainActivity : Activity() {
         val title = TextView(this)
         title.text = "MyBubble"
         title.textSize = 24f
+
+        val phoneInput = EditText(this)
+        phoneInput.hint = "Your phone number"
+        phoneInput.inputType = InputType.TYPE_CLASS_PHONE
+        phoneInput.setText(prefs.getString("phone", ""))
+
+        val saveButton = Button(this)
+        saveButton.text = "Save number"
+        saveButton.setOnClickListener {
+            prefs.edit().putString("phone", phoneInput.text.toString().trim()).apply()
+            Toast.makeText(this, "Number saved", Toast.LENGTH_SHORT).show()
+        }
 
         val startButton = Button(this)
         startButton.text = "Start bubble"
@@ -44,6 +60,8 @@ class MainActivity : Activity() {
         }
 
         layout.addView(title)
+        layout.addView(phoneInput)
+        layout.addView(saveButton)
         layout.addView(startButton)
         layout.addView(stopButton)
         setContentView(layout)

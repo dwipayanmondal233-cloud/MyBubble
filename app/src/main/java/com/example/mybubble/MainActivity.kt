@@ -59,7 +59,14 @@ class MainActivity : Activity() {
             stopService(Intent(this, BubbleService::class.java))
         }
 
+                val accButton = Button(this)
+        accButton.text = "Open Accessibility settings"
+        accButton.setOnClickListener {
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        }
+
         layout.addView(title)
+        layout.addView(accButton)
         layout.addView(phoneInput)
         layout.addView(saveButton)
         layout.addView(startButton)

@@ -87,15 +87,22 @@ class BubbleService : Service() {
                 MotionEvent.ACTION_UP -> {
                     val moved = Math.abs(event.rawX - touchX) + Math.abs(event.rawY - touchY)
                     if (moved < 15) {
-                        val phone = getSharedPreferences("mybubble_prefs", MODE_PRIVATE).getString("phone", "") ?: ""
-                        Toast.makeText(this, if (phone.isEmpty()) "No number saved yet" else "Saved: $phone", Toast.LENGTH_SHORT).show()
+                       val phone = getSharedPreferences("mybubble_prefs", MODE_PRIVATE).getString("phone", "") ?: ""
+                        val service = PhoneAccessibilityService.instance
+                        if (phone.isEmpty()) {
+                            Toast.makeText(this, "No number saved yet", Toast.LENGTH_SHORT).show()
+                            } else if (service == null) {
+                         Toast.makeText(this, "Turn on MyBubble in Accessibility settings", Toast.LENGTH_LONG).show()
+                        } else if (!service.insertText(phone)) {
+                            Toast.makeText(this, "Tap a text box first", Toast.LENGTH_SHORT).show()
+                                    }
                     }
                     true
                 }
                 else -> false
             }
         }
-
+S
         windowManager.addView(view, params)
         bubble = view
     }

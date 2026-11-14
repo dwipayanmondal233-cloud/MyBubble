@@ -3,7 +3,11 @@ name: Build APK
 on:
   push:
     branches: [ main ]
+    paths-ignore: [ 'docs/**' ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -30,3 +34,11 @@ jobs:
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish public download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk MyBubble.apk
+          gh release delete latest --cleanup-tag --yes --repo ${{ github.repository }} || true
+          gh release create latest MyBubble.apk --repo ${{ github.repository }} --title "MyBubble (latest)" --notes "Newest build of MyBubble." --latest

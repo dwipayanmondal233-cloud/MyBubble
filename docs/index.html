@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyBubble - Your cute number teddy</title>
+<style>
+  :root { --pink:#FF7EB6; --deep:#E0527F; --ink:#5b3348; --soft:#FFF0F6; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    color:var(--ink); background:linear-gradient(180deg,#FFE3F0,#FFF6E5); min-height:100vh; }
+  .wrap { max-width:720px; margin:0 auto; padding:24px 20px 60px; }
+  .hero { text-align:center; padding-top:30px; }
+  .teddy { font-size:110px; display:inline-block; animation:bob 2.4s ease-in-out infinite; cursor:pointer; user-select:none; }
+  @keyframes bob { 0%,100%{transform:translateY(-10px) rotate(-6deg)} 50%{transform:translateY(10px) rotate(6deg)} }
+  .teddy:active { animation:none; transform:scale(.85); }
+  h1 { font-size:40px; margin:8px 0 4px; color:var(--deep); }
+  .sub { font-size:18px; opacity:.85; margin:0 0 22px; }
+  .btn { display:inline-block; background:var(--pink); color:#fff; font-weight:700; font-size:20px;
+    padding:16px 34px; border-radius:40px; text-decoration:none;
+    box-shadow:0 8px 0 #e0589a, 0 14px 24px rgba(224,82,127,.35); transition:transform .15s; }
+  .btn:active { transform:translateY(6px) scale(.96); box-shadow:0 2px 0 #e0589a; }
+  .note { font-size:13px; opacity:.7; margin-top:16px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin:36px 0; }
+  .card { background:#fff; border-radius:24px; padding:18px; box-shadow:0 6px 20px rgba(224,82,127,.12); }
+  .card b { font-size:18px; display:block; margin-bottom:4px; }
+  h2 { color:var(--deep); margin:36px 0 12px; }
+  ol { background:#fff; border-radius:24px; padding:20px 20px 20px 40px; line-height:1.7; box-shadow:0 6px 20px rgba(224,82,127,.12); }
+  details { background:#fff; border-radius:20px; margin:10px 0; padding:14px 18px; box-shadow:0 4px 14px rgba(224,82,127,.1); }
+  summary { font-weight:700; cursor:pointer; }
+  details p, details ol { margin:10px 0 0; line-height:1.6; }
+  details ol { box-shadow:none; padding:0 0 0 20px; }
+  footer { text-align:center; margin-top:40px; font-size:14px; opacity:.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="teddy" onclick="this.textContent=['🧸','🐰','🐱','🐼','🦊','🐶','🦄','🐥'][Math.floor(Math.random()*8)]">🧸</div>
+    <h1>MyBubble</h1>
+    <p class="sub">A cute floating teddy that types your phone number for you 💕</p>
+    <a class="btn" href="https://github.com/dwipayanmondal233-cloud/MyBubble/releases/latest/download/MyBubble.apk">⬇️ Download for Android</a>
+    <p class="note">Free · Android 8.0 or newer · No ads · Your number stays on your phone</p>
+  </div>
+
+  <div class="grid">
+    <div class="card"><b>🫧 Floating teddy</b>Drag it anywhere. Tap it to type your number into any text box.</div>
+    <div class="card"><b>🎮 Jelly play</b>Hold it for 1 second, then fling it. It squishes and bounces off the walls.</div>
+    <div class="card"><b>🎀 Your style</b>10 animals, 6 colours, and a size slider. Cute sounds with an on/off switch.</div>
+    <div class="card"><b>🙈 Hide anytime</b>Quick Settings tile and notification button, so it stays out of your screen recordings.</div>
+  </div>
+
+  <h2>📲 How to install</h2>
+  <ol>
+    <li>Tap <b>Download for Android</b> and save the file.</li>
+    <li>Open the downloaded file. Allow <b>Install unknown apps</b> if asked.</li>
+    <li>If Play Protect says "App blocked", see the fix below.</li>
+    <li>Open MyBubble, type your number, and tap <b>Save number</b>.</li>
+    <li>Tap <b>Start teddy</b> and allow <b>Display over other apps</b>.</li>
+    <li>Tap <b>Accessibility settings</b>, open MyBubble, and turn it <b>On</b>.</li>
+    <li>Tap a text box in any app, then tap the teddy. Done! 🎉</li>
+  </ol>
+
+  <h2>🛠️ Problems and fixes</h2>
+
+  <details><summary>🚫 "App blocked to protect your device" (Play Protect)</summary>
+    <p>Play Protect treats Accessibility apps as sensitive. MyBubble only uses it to type your number.</p>
+    <ol>
+      <li>Open the <b>Play Store</b>, tap your profile picture, then <b>Play Protect</b>.</li>
+      <li>Tap the gear icon and turn off <b>Scan apps with Play Protect</b>.</li>
+      <li>Install the app again.</li>
+      <li>Turn Play Protect back on.</li>
+    </ol>
+  </details>
+
+  <details><summary>❌ "App not installed"</summary>
+    <p>Uninstall any older MyBubble first, then install again. Also check you have free storage.</p>
+  </details>
+
+  <details><summary>🔒 Accessibility switch is greyed out ("Restricted setting")</summary>
+    <ol>
+      <li>Phone <b>Settings</b>, then <b>Apps</b>, then <b>MyBubble</b>.</li>
+      <li>Tap the <b>⋮</b> menu at the top right.</li>
+      <li>Tap <b>Allow restricted settings</b> and confirm.</li>
+      <li>Go to Accessibility and turn MyBubble on.</li>
+    </ol>
+    <p>If you don't see ⋮, open Accessibility and tap MyBubble once, then go back to the App info page.</p>
+  </details>
+
+  <details><summary>👻 The teddy does not appear</summary>
+    <p>Tap <b>Start teddy</b> in the app. Allow <b>Display over other apps</b> and notifications. Make sure the mode is not set to <b>Hidden</b>. If it is set to "Only with a text box", tap a text box first.</p>
+  </details>
+
+  <details><summary>⌨️ The number does not get typed</summary>
+    <p>Check that you saved a number and that MyBubble is on in Accessibility. Tap a text box so the keyboard appears <i>before</i> tapping the teddy. After updating the app, turn Accessibility off and on once. Some apps, like banking apps and password fields, block this on purpose.</p>
+  </details>
+
+  <details><summary>😴 The teddy vanishes or slides off the edge</summary>
+    <p>That is the edge dock. It tucks half off-screen after 2.5 seconds. Touch the visible half to bring it back.</p>
+  </details>
+
+  <details><summary>🔋 The teddy disappears after a while</summary>
+    <p>Your phone's battery saver may be stopping it. Go to Settings, Apps, MyBubble, Battery, and choose <b>Unrestricted</b>. On Xiaomi, Oppo, Vivo, or Realme, also enable <b>Autostart</b> for MyBubble.</p>
+  </details>
+
+  <details><summary>🔇 No sound</summary>
+    <p>Turn the <b>Sounds</b> switch on in the app. Sounds use your <b>media volume</b>, so turn it up.</p>
+  </details>
+
+  <details><summary>🎥 I am recording my screen</summary>
+    <p>The teddy shows up in recordings. Pull down the notification and tap <b>Hide teddy 🙈</b>, or use the <b>Teddy</b> tile in Quick Settings.</p>
+  </details>
+
+  <details><summary>🔐 Is it safe?</summary>
+    <p>MyBubble has no internet access and no ads. Your number is stored only on your phone. The Accessibility permission is used only to type into the text box you selected.</p>
+  </details>
+
+  <footer>Made with 💖 · Free forever</footer>
+</div>
+</body>
+</html>
